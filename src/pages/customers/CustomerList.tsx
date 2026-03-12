@@ -122,7 +122,7 @@ const CustomerList: React.FC = () => {
   // 获取客户统计
   const fetchStats = async () => {
     try {
-      const response = await apiService.get(apiEndpoints.customers.stats);
+      const response = await apiService.get<CustomerStats>(apiEndpoints.customers.stats);
       // 后端返回的是直接的数据结构
       setStats(
         response || {
