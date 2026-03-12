@@ -153,7 +153,7 @@ class ApiService {
       responseType: 'blob',
     });
 
-    const blob = new Blob([response as BlobPart]);
+    const blob = new Blob([response as unknown as BlobPart]);
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
