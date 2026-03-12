@@ -218,13 +218,14 @@ const Layout: React.FC = () => {
     // 查找匹配的菜单项
     const findMenuItem = (items: MenuItem[], currentPath: string) => {
       for (const item of items) {
+        if (!item) continue;
         if (item.key === currentPath) {
-          selectedKeys.push(item.key);
+          selectedKeys.push(item.key as string);
           return true;
         }
         if (item.children) {
           if (findMenuItem(item.children, currentPath)) {
-            selectedKeys.push(item.key);
+            selectedKeys.push(item.key as string);
             return true;
           }
         }
