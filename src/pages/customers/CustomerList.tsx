@@ -57,6 +57,16 @@ interface CustomerStats {
   by_source: Record<string, number>;
 }
 
+interface CustomerListResponse {
+  customers: Customer[];
+  pagination: {
+    current: number;
+    pageSize: number;
+    total: number;
+    pages: number;
+  };
+}
+
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,7 +98,7 @@ const CustomerList: React.FC = () => {
       params.append('page', searchParams.page.toString());
       params.append('per_page', searchParams.per_page.toString());
 
-      const response = await apiService.get(`${apiEndpoints.customers.list}?${params}`);
+      const response = await apiService.get<CustomerListResponse>(`${apiEndpoints.customers.list}?${params}`);
       // 后端返回的是直接的数据结构，不是包装在ApiResponse中
       setCustomers(response.customers || []);
       setPagination(
