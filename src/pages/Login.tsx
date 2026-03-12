@@ -15,7 +15,11 @@ const Login: React.FC = () => {
 
     try {
       // 调用后端登录API
-      const response = await apiService.post(apiEndpoints.auth.login, {
+      interface LoginResponse {
+        access_token: string;
+        user?: Record<string, unknown>;
+      }
+      const response = await apiService.post<LoginResponse>(apiEndpoints.auth.login, {
         username: values.username,
         password: values.password,
       });
