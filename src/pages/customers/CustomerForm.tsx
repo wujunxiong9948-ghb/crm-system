@@ -5,8 +5,22 @@ import { apiService, apiEndpoints } from '../../services/api';
 const { TextArea } = Input;
 const { Option } = Select;
 
+interface Customer {
+  id: number;
+  name: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  industry?: string;
+  customer_type?: string;
+  source?: string;
+  status?: string;
+  notes?: string;
+}
+
 interface CustomerFormProps {
-  customer?: any;
+  customer?: Customer;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -22,7 +36,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSuccess, onCanc
     }
   }, [customer, form]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Record<string, unknown>) => {
     try {
       if (customer) {
         // 更新客户
@@ -34,9 +48,10 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSuccess, onCanc
         message.success('客户创建成功');
       }
       onSuccess();
-    } catch (error: any) {
-      if (error.response?.data?.error) {
-        message.error(error.response.data.error);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      if (err.response?.data?.error) {
+        message.error(err.response.data.error);
       } else {
         message.error(customer ? '更新客户失败' : '创建客户失败');
       }

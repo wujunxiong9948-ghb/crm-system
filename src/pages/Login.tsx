@@ -31,8 +31,9 @@ const Login: React.FC = () => {
       } else {
         message.error('登录失败，请重试');
       }
-    } catch (error: any) {
-      const errorMsg = error?.response?.data?.error || error?.message || '登录失败，请重试';
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } }; message?: string };
+      const errorMsg = err?.response?.data?.error || err?.message || '登录失败，请重试';
       message.error(errorMsg);
     } finally {
       setLoading(false);

@@ -94,37 +94,37 @@ apiClient.interceptors.response.use(
 // API服务类
 class ApiService {
   // 通用GET请求
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await apiClient.get<ApiResponse<T>>(url, config);
     return response.data as T;
   }
 
   // 通用POST请求
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await apiClient.post<ApiResponse<T>>(url, data, config);
     return response.data as T;
   }
 
   // 通用PUT请求
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await apiClient.put<ApiResponse<T>>(url, data, config);
     return response.data as T;
   }
 
   // 通用PATCH请求
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await apiClient.patch<ApiResponse<T>>(url, data, config);
     return response.data as T;
   }
 
   // 通用DELETE请求
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await apiClient.delete<ApiResponse<T>>(url, config);
     return response.data as T;
   }
 
   // 文件上传
-  async uploadFile<T = any>(
+  async uploadFile<T = unknown>(
     url: string,
     file: File,
     onProgress?: (progress: number) => void
@@ -153,7 +153,7 @@ class ApiService {
       responseType: 'blob',
     });
 
-    const blob = new Blob([response as any]);
+    const blob = new Blob([response as BlobPart]);
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
@@ -183,13 +183,13 @@ class ApiService {
   }
 
   // 获取当前用户信息
-  getCurrentUser(): any {
+  getCurrentUser(): Record<string, unknown> | null {
     const userInfo = localStorage.getItem('user_info');
-    return userInfo ? JSON.parse(userInfo) : null;
+    return userInfo ? (JSON.parse(userInfo) as Record<string, unknown>) : null;
   }
 
   // 设置当前用户信息
-  setCurrentUser(userInfo: any): void {
+  setCurrentUser(userInfo: Record<string, unknown>): void {
     localStorage.setItem('user_info', JSON.stringify(userInfo));
   }
 }

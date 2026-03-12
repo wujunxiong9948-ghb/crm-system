@@ -127,8 +127,12 @@ const CustomerList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCustomers();
-    fetchStats();
+    const fetchData = async () => {
+      await fetchCustomers();
+      await fetchStats();
+    };
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // 处理搜索
@@ -141,11 +145,11 @@ const CustomerList: React.FC = () => {
   };
 
   // 处理分页
-  const handleTableChange = (pagination: any) => {
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
     setSearchParams(prev => ({
       ...prev,
-      page: pagination.current,
-      per_page: pagination.pageSize,
+      page: pagination.current || 1,
+      per_page: pagination.pageSize || 20,
     }));
   };
 

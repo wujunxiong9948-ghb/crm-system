@@ -11,6 +11,7 @@ import {
   Breadcrumb,
   theme,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -31,8 +32,10 @@ import {
 const { Header, Sider, Content, Footer } = AntLayout;
 const { Title } = Typography;
 
+type MenuItem = Required<MenuProps>['items'][number];
+
 // 菜单配置
-const menuItems = [
+const menuItems: MenuItem[] = [
   {
     key: '/dashboard',
     icon: <DashboardOutlined />,
@@ -182,7 +185,7 @@ const Layout: React.FC = () => {
   };
 
   // 处理菜单点击
-  const handleMenuClick = (e: any) => {
+  const handleMenuClick = (e: { key: string }) => {
     navigate(e.key);
   };
 
@@ -213,7 +216,7 @@ const Layout: React.FC = () => {
     const selectedKeys: string[] = [];
 
     // 查找匹配的菜单项
-    const findMenuItem = (items: any[], currentPath: string) => {
+    const findMenuItem = (items: MenuItem[], currentPath: string) => {
       for (const item of items) {
         if (item.key === currentPath) {
           selectedKeys.push(item.key);
