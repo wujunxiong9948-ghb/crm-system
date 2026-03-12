@@ -1,0 +1,77 @@
+{
+  "short_name": "CRM系统",
+  "name": "酒店家具CRM系统",
+  "description": "专业的客户关系管理解决方案",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#001529",
+  "background_color": "#f0f2f5",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "zh-CN",
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "仪表盘",
+      "short_name": "仪表盘",
+      "description": "查看业务概览",
+      "url": "/dashboard",
+      "icons": [{ "src": "dashboard-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "客户管理",
+      "short_name": "客户",
+      "description": "管理客户信息",
+      "url": "/customers",
+      "icons": [{ "src": "customers-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "新建订单",
+      "short_name": "订单",
+      "description": "创建新订单",
+      "url": "/orders/new",
+      "icons": [{ "src": "orders-icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CRM系统仪表盘"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "CRM系统移动端界面"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "protocol_handlers": [
+    {
+      "protocol": "web+crm",
+      "url": "/?url=%s"
+    }
+  ]
+}

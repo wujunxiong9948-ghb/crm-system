@@ -1,0 +1,182 @@
+{
+  "enabled": true,
+  "notification_system": {
+    "qq": {
+      "enabled": true,
+      "config_file": "../../qq_config.json",
+      "default_level": "info"
+    },
+    "email": {
+      "enabled": false,
+      "smtp_server": "smtp.example.com",
+      "smtp_port": 587,
+      "username": "noreply@example.com",
+      "password": "",
+      "from_email": "noreply@example.com",
+      "to_emails": ["admin@example.com"]
+    },
+    "webhook": {
+      "enabled": false,
+      "url": "https://api.example.com/webhook",
+      "secret": ""
+    }
+  },
+  "event_notifications": {
+    "customer": {
+      "created": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["sales_team", "manager"]
+      },
+      "updated": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["assigned_to"]
+      },
+      "important": {
+        "enabled": true,
+        "level": "warning",
+        "systems": ["qq", "email"],
+        "recipients": ["manager", "sales_director"]
+      }
+    },
+    "opportunity": {
+      "created": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["sales_team", "assigned_to"]
+      },
+      "stage_changed": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["assigned_to", "manager"]
+      },
+      "won": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq", "email"],
+        "recipients": ["all_sales", "ceo"]
+      },
+      "lost": {
+        "enabled": true,
+        "level": "warning",
+        "systems": ["qq"],
+        "recipients": ["assigned_to", "manager"]
+      }
+    },
+    "order": {
+      "created": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["sales_team", "operations_team"]
+      },
+      "status_changed": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["customer", "operations_team"]
+      },
+      "shipped": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq", "email"],
+        "recipients": ["customer", "sales_person"]
+      },
+      "completed": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["sales_team", "finance_team"]
+      }
+    },
+    "contact": {
+      "created": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["assigned_to"]
+      },
+      "follow_up": {
+        "enabled": true,
+        "level": "warning",
+        "systems": ["qq"],
+        "recipients": ["assigned_to"]
+      }
+    },
+    "system": {
+      "alert": {
+        "enabled": true,
+        "level": "error",
+        "systems": ["qq", "email"],
+        "recipients": ["admin", "it_team"]
+      },
+      "backup": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq"],
+        "recipients": ["admin"]
+      },
+      "daily_report": {
+        "enabled": true,
+        "level": "info",
+        "systems": ["qq", "email"],
+        "recipients": ["manager", "sales_director"]
+      }
+    }
+  },
+  "recipient_groups": {
+    "admin": ["admin@example.com"],
+    "manager": ["manager@example.com"],
+    "sales_team": ["sales1@example.com", "sales2@example.com"],
+    "sales_director": ["director@example.com"],
+    "all_sales": ["sales1@example.com", "sales2@example.com", "sales3@example.com"],
+    "operations_team": ["ops@example.com"],
+    "finance_team": ["finance@example.com"],
+    "it_team": ["it@example.com"],
+    "ceo": ["ceo@example.com"]
+  },
+  "scheduling": {
+    "daily_report": {
+      "enabled": true,
+      "time": "08:00",
+      "timezone": "Asia/Shanghai",
+      "systems": ["qq", "email"]
+    },
+    "weekly_report": {
+      "enabled": true,
+      "day": "monday",
+      "time": "09:00",
+      "timezone": "Asia/Shanghai",
+      "systems": ["email"]
+    },
+    "monthly_report": {
+      "enabled": true,
+      "day": 1,
+      "time": "10:00",
+      "timezone": "Asia/Shanghai",
+      "systems": ["email"]
+    }
+  },
+  "rate_limiting": {
+    "max_notifications_per_hour": 50,
+    "max_notifications_per_day": 200,
+    "cooldown_period_seconds": 60
+  },
+  "retry_policy": {
+    "max_retries": 3,
+    "retry_delay_seconds": 5,
+    "backoff_factor": 2
+  },
+  "logging": {
+    "enabled": true,
+    "log_file": "../../logs/crm_notifications.log",
+    "log_level": "INFO",
+    "max_log_size_mb": 10,
+    "backup_count": 5
+  }
+}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM系统访问测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1890ff;
+            border-bottom: 2px solid #1890ff;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .error {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+        .info {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #1890ff;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #1890ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #40a9ff;
+        }
+        .btn-secondary {
+            background-color: #52c41a;
+        }
+        .btn-secondary:hover {
+            background-color: #73d13d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 酒店家具CRM系统 - 访问测试</h1>
+
+        <div class="status info">
+            <strong>测试时间：</strong>2026-03-12 09:02:00<br>
+            <strong>系统位置：</strong>C:\Users\Administrator\lobsterai\project\crm\
+        </div>
+
+        <h2>🔍 服务状态检查</h2>
+
+        <div id="frontend-status" class="status">
+            正在检查前端服务 (localhost:3000)...
+        </div>
+
+        <div id="backend-status" class="status">
+            正在检查后端服务 (localhost:5000)...
+        </div>
+
+        <h2>🚀 快速访问</h2>
+        <p>
+            <a href="http://localhost:3000" class="btn" target="_blank">访问前端界面</a>
+            <a href="http://localhost:5000" class="btn btn-secondary" target="_blank">访问后端API</a>
+        </p>
+
+        <h2>🔧 登录信息</h2>
+        <div class="status info">
+            <strong>管理员账号：</strong>admin / admin123<br>
+            <strong>销售员账号：</strong>sales1 / sales123
+        </div>
+
+        <h2>📋 启动命令</h2>
+        <pre style="background: #f6f8fa; padding: 15px; border-radius: 5px;">
+# 启动后端服务
+cd C:\Users\Administrator\lobsterai\project\crm\backend
+python run_app.py
+
+# 启动前端服务
+cd C:\Users\Administrator\lobsterai\project\crm\frontend
+npm start
+        </pre>
+
+        <h2>📞 技术支持</h2>
+        <div class="status info">
+            <strong>技术支持：</strong>山鸡（你的AI助理）<br>
+            <strong>响应时间：</strong>24/7随时待命
+        </div>
+    </div>
+
+    <script>
+        // 测试前端服务
+        fetch('http://localhost:3000')
+            .then(response => {
+                const statusDiv = document.getElementById('frontend-status');
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ <strong>前端服务正常</strong><br>localhost:3000 可以正常访问';
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '❌ <strong>前端服务异常</strong><br>localhost:3000 访问失败';
+                }
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('frontend-status');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ <strong>前端服务异常</strong><br>localhost:3000 无法访问<br>错误信息：' + error.message;
+            });
+
+        // 测试后端服务
+        fetch('http://localhost:5000/')
+            .then(response => {
+                const statusDiv = document.getElementById('backend-status');
+                if (response.ok || response.status === 404) {
+                    // 404也是正常的，说明服务在运行
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ <strong>后端服务正常</strong><br>localhost:5000 可以正常访问';
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '❌ <strong>后端服务异常</strong><br>localhost:5000 访问失败';
+                }
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('backend-status');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ <strong>后端服务异常</strong><br>localhost:5000 无法访问<br>错误信息：' + error.message;
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "enabled": true,
+  "method": "webhook",
+  "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your-webhook-key",
+  "api_url": "",
+  "api_key": "",
+  "recipient_qq": "123456789",
+  "group_id": "",
+  "email_config": {
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "username": "your-email@gmail.com",
+    "password": "your-email-password",
+    "from_email": "your-email@gmail.com",
+    "to_email": "recipient@example.com"
+  },
+  "notification_level": "info",
+  "max_notifications_per_hour": 10,
+  "crm_integration": {
+    "enabled": true,
+    "events": {
+      "customer_created": true,
+      "customer_updated": true,
+      "opportunity_created": true,
+      "opportunity_won": true,
+      "order_created": true,
+      "order_completed": true,
+      "system_alert": true,
+      "daily_report": true
+    },
+    "recipients": {
+      "admin": ["123456789"],
+      "sales_team": ["987654321", "456789123"],
+      "manager": ["111222333"]
+    }
+  },
+  "message_templates": {
+    "customer_created": "【新客户】{customer_name} ({company}) 已添加到CRM系统",
+    "opportunity_won": "🎉【机会成交】{opportunity_name} 已成交，金额: ¥{actual_value}",
+    "order_created": "【新订单】订单号: {order_number}，客户: {customer_name}，金额: ¥{total_amount}",
+    "daily_report": "📊【每日报告】新增客户: {new_customers}，新增订单: {new_orders}，今日营收: ¥{daily_revenue}"
+  }
+}
