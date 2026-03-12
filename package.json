@@ -1,0 +1,75 @@
+{
+  "name": "crm-frontend",
+  "version": "1.0.0",
+  "description": "酒店家具CRM系统前端",
+  "private": true,
+  "scripts": {
+    "start": "set PORT=3001 && react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5",
+    "antd": "^5.12.8",
+    "@ant-design/icons": "^5.3.0",
+    "axios": "^1.6.2",
+    "react-router-dom": "^6.20.1",
+    "react-query": "^3.39.3",
+    "zustand": "^4.4.7",
+    "recharts": "^2.10.3",
+    "dayjs": "^1.11.10",
+    "lodash": "^4.17.21",
+    "classnames": "^2.3.2",
+    "react-hook-form": "^7.48.2",
+    "yup": "^1.3.3",
+    "react-hot-toast": "^2.4.1",
+    "react-helmet-async": "^2.0.4",
+    "react-intersection-observer": "^9.5.3",
+    "react-virtualized-auto-sizer": "^1.0.12",
+    "react-window": "^1.8.10",
+    "react-error-boundary": "^4.0.11",
+    "react-loading-skeleton": "^3.3.1",
+    "react-spinners": "^0.13.8"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.1.1",
+    "sass": "^1.69.5",
+    "@types/lodash": "^4.14.202",
+    "@types/recharts": "^1.8.10"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:5000",
+  "homepage": ".",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
