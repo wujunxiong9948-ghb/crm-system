@@ -20,7 +20,7 @@ interface Customer {
 }
 
 interface CustomerFormProps {
-  customer?: Customer;
+  customer?: Customer | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
