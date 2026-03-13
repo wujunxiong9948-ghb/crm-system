@@ -53,19 +53,60 @@ export interface Customer extends BaseEntity {
   notes?: string;
 }
 
-// 销售机会类型
+// 销售机会类型 - 酒店家具项目专用
 export interface Opportunity extends BaseEntity {
   customer_id: number;
-  name: string;
+  name: string; // 项目名称，如"XX酒店家具采购项目"
   description?: string;
-  product_category?: string;
-  expected_value: number;
-  probability: number; // 0-100
-  stage: '初步接触' | '需求分析' | '方案报价' | '谈判' | '成交' | '丢失';
-  expected_close_date?: string;
-  assigned_to?: string;
-  status: '进行中' | '已成交' | '已丢失';
-  customer?: Customer;
+
+  // 酒店项目基本信息
+  hotel_name: string; // 酒店名称
+  project_address: string; // 项目地址（省市区+详细地址）
+  project_type: '新建酒店' | '酒店翻新' | '连锁扩张' | '其他';
+  star_rating?: '经济型' | '三星' | '四星' | '五星' | '奢华';
+
+  // 项目时间规划
+  planned_opening_date?: string; // 计划开业时间
+  expected_close_date?: string; // 预计成交时间
+
+  // 采购规模
+  room_count: number; // 客房数（购买套装数量）
+  product_quantity?: { // 具体产品数量
+    beds?: number; // 床
+    nightstands?: number; // 床头柜
+    wardrobes?: number; // 衣柜
+    desks?: number; // 书桌
+    chairs?: number; // 椅子
+    sofas?: number; // 沙发
+    coffee_tables?: number; // 茶几
+    tv_cabinets?: number; // 电视柜
+    other?: number; // 其他
+  };
+
+  // 预算信息
+  renovation_budget?: number; // 装修翻新预算（万元）
+  furniture_budget?: number; // 家具采购预算（万元）
+  expected_value: number; // 预计订单金额（万元）
+
+  // 销售跟进
+  stage: '初步接触' | '需求调研' | '方案设计' | '报价谈判' | '合同签订' | '成交' | '丢失';
+  probability: number; // 成交概率 0-100
+  status: '进行中' | '已成交' | '已丢失' | '暂停';
+  priority: '高' | '中' | '低';
+
+  // 负责人和关联
+  assigned_to?: string; // 负责销售
+  assigned_to_name?: string; // 负责人姓名
+  customer?: Customer; // 关联客户
+
+  // 竞争对手信息
+  competitors?: string; // 竞争对手
+  our_advantage?: string; // 我司优势
+
+  // 跟进记录
+  last_contact_date?: string; // 最后联系时间
+  next_follow_up_date?: string; // 下次跟进时间
+  notes?: string; // 备注
 }
 
 // 订单类型

@@ -13,6 +13,8 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Login = React.lazy(() => import('./pages/Login'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const CustomerList = React.lazy(() => import('./pages/customers/CustomerList'));
+const OpportunityList = React.lazy(() => import('./pages/opportunities/OpportunityList'));
+const OpportunityDetail = React.lazy(() => import('./pages/opportunities/OpportunityDetail'));
 
 // 设置dayjs本地化
 dayjs.locale('zh-cn');
@@ -84,9 +86,9 @@ const App: React.FC = () => {
 
             {/* 销售机会 */}
             <Route path="opportunities">
-              <Route index element={<div style={{ padding: 24 }}>销售机会页面（开发中）</div>} />
-              <Route path=":id" element={<div>机会详情（开发中）</div>} />
-              <Route path="new" element={<div>新建机会（开发中）</div>} />
+              <Route index element={<OpportunityList />} />
+              <Route path=":id" element={<OpportunityDetail />} />
+              <Route path="new" element={<OpportunityList />} />
             </Route>
 
             {/* 订单管理 */}
