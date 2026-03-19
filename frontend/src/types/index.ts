@@ -66,6 +66,25 @@ export interface Opportunity extends BaseEntity {
   assigned_to?: string;
   status: '进行中' | '已成交' | '已丢失';
   customer?: Customer;
+  // 酒店项目相关字段
+  hotel_name?: string;
+  project_type?: '新建酒店' | '酒店翻新' | '连锁扩张';
+  hotel_star?: '经济型' | '三星' | '四星' | '五星' | '超五星';
+  room_count?: number;
+  // 地址信息
+  province?: string;
+  city?: string;
+  district?: string;
+  address?: string;
+  // 产品数量
+  bed_count?: number;
+  nightstand_count?: number;
+  wardrobe_count?: number;
+  desk_count?: number;
+  chair_count?: number;
+  sofa_count?: number;
+  coffee_table_count?: number;
+  tv_cabinet_count?: number;
 }
 
 // 订单类型

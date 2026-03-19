@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Layout as AntLayout,
@@ -10,7 +10,13 @@ import {
   Typography,
   Breadcrumb,
   theme,
+  message,
+  Modal,
+  Grid,
 } from 'antd';
+import { apiService, apiEndpoints } from '../services/api';
+import { createPermissionChecker, PermissionChecker } from '../utils/permission';
+import MobileLayout from './MobileLayout';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -26,10 +32,12 @@ import {
   UserSwitchOutlined,
   BellOutlined,
   QuestionCircleOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content, Footer } = AntLayout;
 const { Title } = Typography;
+const { useBreakpoint } = Grid;
 
 // 菜单配置
 const menuItems = [
@@ -49,7 +57,6 @@ const menuItems = [
     label: '销售机会',
     children: [
       { key: '/opportunities', label: '机会列表' },
-      { key: '/opportunities/new', label: '创建机会' },
       { key: '/opportunities/pipeline', label: '机会管道' },
     ],
   },
@@ -87,13 +94,22 @@ const menuItems = [
     ],
   },
   {
+    key: '/reminders',
+    icon: <ClockCircleOutlined />,
+    label: '提醒中心',
+  },
+  {
     key: '/settings',
     icon: <SettingOutlined />,
     label: '系统设置',
     children: [
       { key: '/settings/profile', label: '个人设置' },
       { key: '/settings/notifications', label: '通知设置' },
-      { key: '/settings/system', label: '系统配置' },
+      { key: '/settings/users', label: '用户管理' },
+      { key: '/settings/roles', label: '角色权限' },
+      { key: '/settings/company', label: '公司信息' },
+      { key: '/settings/dictionary', label: '业务参数' },
+      { key: '/settings/logs', label: '操作日志' },
     ],
   },
 ];
@@ -143,19 +159,116 @@ const breadcrumbNameMap: Record<string, string> = {
   '/reports/sales': '销售报表',
   '/reports/customers': '客户分析',
   '/reports/products': '产品分析',
+  '/reminders': '提醒中心',
   '/settings': '系统设置',
   '/settings/profile': '个人设置',
   '/settings/notifications': '通知设置',
-  '/settings/system': '系统配置',
+  '/settings/users': '用户管理',
+  '/settings/roles': '角色权限',
+  '/settings/company': '公司信息',
+  '/settings/dictionary': '业务参数',
+  '/settings/logs': '操作日志',
 };
+
+// 用户信息接口
+interface UserInfo {
+  id: number;
+  username: string;
+  full_name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+}
 
 const Layout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // 创建权限检查器
+  const permissionChecker = useMemo(() => {
+    return createPermissionChecker(userInfo?.role);
+  }, [userInfo?.role]);
+
+  // 根据权限过滤菜单
+  const filteredMenuItems = useMemo(() => {
+    return permissionChecker.filterMenuItems(menuItems);
+  }, [permissionChecker]);
+
+  // 检查当前路由权限
+  useEffect(() => {
+    if (userInfo && !permissionChecker.hasPermission(location.pathname)) {
+      // 显示无权限提示
+      Modal.error({
+        title: '无权限访问',
+        content: `您的角色 [${permissionChecker.getRoleDisplayName()}] 没有权限访问此页面`,
+        okText: '返回首页',
+        onOk: () => {
+          navigate('/dashboard');
+        },
+      });
+    }
+  }, [location.pathname, userInfo, permissionChecker, navigate]);
+
+  // 获取用户信息
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      // 先尝试从 localStorage 获取用户信息
+      const cachedUser = apiService.getCurrentUser();
+      if (cachedUser) {
+        setUserInfo(cachedUser);
+      }
+
+      // 如果没有token，跳转到登录页
+      if (!apiService.isAuthenticated()) {
+        navigate('/login');
+        return;
+      }
+
+      // 从API获取最新用户信息（包含头像）
+      try {
+        const data = await apiService.get<{ user: UserInfo }>(apiEndpoints.auth.profile);
+        if (data && data.user) {
+          setUserInfo(data.user);
+          // 更新本地缓存
+          apiService.setCurrentUser(data.user);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 401) {
+          // Token过期，清除并跳转
+          apiService.clearAuthToken();
+          navigate('/login');
+        } else {
+          console.error('获取用户信息失败:', error);
+          // 使用缓存数据，不显示错误
+        }
+      }
+    };
+
+    fetchUserInfo();
+
+    // 监听个人信息更新事件
+    const handleProfileUpdate = (event: CustomEvent) => {
+      const updatedUser = event.detail?.user || event.detail;
+      if (updatedUser) {
+        setUserInfo(updatedUser);
+        apiService.setCurrentUser(updatedUser);
+      } else {
+        // 如果没有数据，重新获取
+        fetchUserInfo();
+      }
+    };
+
+    window.addEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleProfileUpdate as EventListener);
+    };
+  }, [navigate]);
 
   // 获取当前路径的面包屑
   const getBreadcrumbItems = () => {
@@ -238,6 +351,20 @@ const Layout: React.FC = () => {
     return getSelectedKeys();
   };
 
+  // 响应式断点
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
+  // 移动端使用MobileLayout
+  if (isMobile) {
+    return (
+      <MobileLayout>
+        <Outlet />
+      </MobileLayout>
+    );
+  }
+
+  // PC端使用完整Layout
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
       {/* 侧边栏 */}
@@ -259,16 +386,30 @@ const Layout: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             borderBottom: '1px solid #f0f0f0',
+            padding: '0 16px',
           }}
         >
           {collapsed ? (
-            <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-              CRM
-            </Title>
+            <img
+              src="/logo.jpg"
+              alt="Logo"
+              style={{
+                height: '40px',
+                width: '40px',
+                objectFit: 'contain',
+                borderRadius: '4px',
+              }}
+            />
           ) : (
-            <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-              酒店家具CRM
-            </Title>
+            <img
+              src="/logo.jpg"
+              alt="远臻CRM"
+              style={{
+                height: '48px',
+                maxWidth: '100%',
+                objectFit: 'contain',
+              }}
+            />
           )}
         </div>
 
@@ -277,7 +418,7 @@ const Layout: React.FC = () => {
           mode="inline"
           selectedKeys={getSelectedKeys()}
           defaultOpenKeys={getOpenKeys()}
-          items={menuItems}
+          items={filteredMenuItems}
           onClick={handleMenuClick}
           style={{
             borderRight: 0,
@@ -334,14 +475,26 @@ const Layout: React.FC = () => {
               placement="bottomRight"
             >
               <Space style={{ cursor: 'pointer' }}>
-                <Avatar
-                  size="default"
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: '#1890ff' }}
-                />
-                <div>
-                  <div style={{ fontWeight: 500 }}>管理员</div>
-                  <div style={{ fontSize: '12px', color: '#8c8c8c' }}>admin@example.com</div>
+                {userInfo?.avatar ? (
+                  <Avatar
+                    size="default"
+                    src={userInfo.avatar}
+                    style={{ backgroundColor: '#1890ff' }}
+                  />
+                ) : (
+                  <Avatar
+                    size="default"
+                    icon={<UserOutlined />}
+                    style={{ backgroundColor: '#1890ff' }}
+                  />
+                )}
+                <div style={{ minWidth: '80px', lineHeight: '1.4' }}>
+                  <div style={{ fontWeight: 500, whiteSpace: 'nowrap', height: '20px', color: '#262626' }}>
+                    {userInfo?.full_name || userInfo?.username || '加载中...'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8c8c8c', whiteSpace: 'nowrap', height: '18px' }}>
+                    {userInfo?.email || ''}
+                  </div>
                 </div>
               </Space>
             </Dropdown>
@@ -365,9 +518,9 @@ const Layout: React.FC = () => {
         {/* 页脚 */}
         <Footer style={{ textAlign: 'center', padding: '16px 50px' }}>
           <div style={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-            <p>酒店家具CRM系统 © 2026 源臻酒店家具</p>
+            <p>CRM系统 © 2026</p>
             <p style={{ fontSize: '12px', marginTop: '4px' }}>
-              版本 1.0.0 | 技术支持: 400-123-4567
+              版本 1.0.0 | 技术支持: wilson 18867006194
             </p>
           </div>
         </Footer>

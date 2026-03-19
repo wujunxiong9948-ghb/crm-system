@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   Button,
@@ -26,6 +27,7 @@ import {
   MailOutlined,
 } from '@ant-design/icons';
 import { apiService, apiEndpoints } from '../../services/api';
+import { usePermission, PERMISSION_CODES } from '../../utils/permission';
 import type { ColumnsType } from 'antd/es/table';
 import CustomerForm from './CustomerForm';
 import dayjs from 'dayjs';
@@ -46,7 +48,6 @@ interface Customer {
   status: string;
   notes: string;
   created_at: string;
-  updated_at: string;
 }
 
 interface CustomerStats {
@@ -57,16 +58,22 @@ interface CustomerStats {
   by_source: Record<string, number>;
 }
 
+interface PaginationInfo {
+  current: number;
+  pageSize: number;
+  total: number;
+  pages: number;
+}
+
 const CustomerList: React.FC = () => {
+  const navigate = useNavigate();
+  const { hasPermissionCode } = usePermission();
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [stats, setStats] = useState<CustomerStats | null>(null);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 20,
-    total: 0,
-    pages: 1,
-  });
   const [searchParams, setSearchParams] = useState({
     search: '',
     type: '',
@@ -74,23 +81,24 @@ const CustomerList: React.FC = () => {
     page: 1,
     per_page: 20,
   });
-  const [formVisible, setFormVisible] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    current: 1,
+    pageSize: 20,
+    total: 0,
+    pages: 1,
+  });
 
   // 获取客户列表
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (searchParams.search) params.append('search', searchParams.search);
-      if (searchParams.type) params.append('type', searchParams.type);
-      if (searchParams.status) params.append('status', searchParams.status);
-      params.append('page', searchParams.page.toString());
-      params.append('per_page', searchParams.per_page.toString());
+      const response: any = await apiService.get(apiEndpoints.customers.list, {
+        params: searchParams,
+      });
 
-      const response = await apiService.get(`${apiEndpoints.customers.list}?${params}`);
-      // 后端返回的是直接的数据结构，不是包装在ApiResponse中
-      setCustomers(response.customers || []);
+      // 后端返回的是直接的数据结构
+      const customersData = response.customers || response.data || [];
+      setCustomers(customersData);
       setPagination(
         response.pagination || {
           current: 1,
@@ -110,7 +118,7 @@ const CustomerList: React.FC = () => {
   // 获取客户统计
   const fetchStats = async () => {
     try {
-      const response = await apiService.get(apiEndpoints.customers.stats);
+      const response: any = await apiService.get(apiEndpoints.customers.stats);
       // 后端返回的是直接的数据结构
       setStats(
         response || {
@@ -181,9 +189,47 @@ const CustomerList: React.FC = () => {
     fetchStats();
   };
 
-  // 导出数据
+  // 导出数据为CSV
   const handleExport = () => {
-    message.info('导出功能开发中...');
+    if (customers.length === 0) {
+      message.warning('没有数据可导出');
+      return;
+    }
+
+    // 定义CSV表头
+    const headers = ['客户名称', '公司名称', '电话', '邮箱', '客户类型', '状态', '来源', '行业', '创建时间'];
+    
+    // 转换数据为CSV行
+    const rows = customers.map(customer => [
+      customer.name,
+      customer.company,
+      customer.phone,
+      customer.email || '',
+      customer.customer_type,
+      customer.status,
+      customer.source,
+      customer.industry,
+      dayjs(customer.created_at).format('YYYY-MM-DD HH:mm:ss'),
+    ]);
+
+    // 构建CSV内容
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    // 创建下载链接
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = `客户列表_${dayjs().format('YYYYMMDD_HHmmss')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    message.success(`成功导出 ${customers.length} 条客户数据`);
   };
 
   // 表格列定义
@@ -195,27 +241,33 @@ const CustomerList: React.FC = () => {
       width: 150,
       render: (text, record) => (
         <div>
-          <div style={{ fontWeight: 'bold' }}>{text}</div>
+          <div 
+            style={{ fontWeight: 'bold', cursor: 'pointer', color: '#1890ff' }}
+            onClick={() => navigate(`/customers/${record.id}`)}
+          >
+            {text}
+          </div>
           <div style={{ fontSize: '12px', color: '#666' }}>{record.company}</div>
         </div>
       ),
     },
     {
       title: '联系方式',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 120,
-      render: (text, record) => (
-        <div>
-          <div>
-            <PhoneOutlined style={{ marginRight: 4 }} /> {text}
-          </div>
+      key: 'contact',
+      width: 200,
+      render: (_, record) => (
+        <Space direction="vertical" size="small">
+          <Space>
+            <PhoneOutlined />
+            <span>{record.phone}</span>
+          </Space>
           {record.email && (
-            <div style={{ fontSize: '12px' }}>
-              <MailOutlined style={{ marginRight: 4 }} /> {record.email}
-            </div>
+            <Space>
+              <MailOutlined />
+              <span>{record.email}</span>
+            </Space>
           )}
-        </div>
+        </Space>
       ),
     },
     {
@@ -223,74 +275,71 @@ const CustomerList: React.FC = () => {
       dataIndex: 'customer_type',
       key: 'customer_type',
       width: 100,
-      render: (type: string) => {
-        const colors: Record<string, string> = {
-          VIP客户: 'red',
-          现有客户: 'blue',
-          潜在客户: 'green',
-        };
-        return <Tag color={colors[type] || 'default'}>{type}</Tag>;
-      },
+      render: (type) => (
+        <Tag color={type === 'VIP客户' ? 'gold' : type === '现有客户' ? 'green' : 'blue'}>
+          {type}
+        </Tag>
+      ),
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 80,
-      render: (status: string) => {
-        const colors: Record<string, string> = {
-          活跃: 'success',
-          休眠: 'warning',
-          流失: 'error',
-        };
-        return <Tag color={colors[status] || 'default'}>{status}</Tag>;
-      },
-    },
-    {
-      title: '来源',
-      dataIndex: 'source',
-      key: 'source',
-      width: 80,
-      render: (source: string) => <Tag>{source}</Tag>,
+      render: (status) => (
+        <Tag color={status === '活跃' ? 'success' : status === '休眠' ? 'warning' : 'default'}>
+          {status}
+        </Tag>
+      ),
     },
     {
       title: '行业',
       dataIndex: 'industry',
       key: 'industry',
+      width: 120,
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      key: 'source',
       width: 100,
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 120,
-      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+      width: 150,
+      render: (date) => dayjs(date).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
-      fixed: 'right' as const,
+      width: 150,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          >
-            编辑
-          </Button>
-          <Popconfirm
-            title="确定要删除这个客户吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />} size="small">
-              删除
+          {hasPermissionCode(PERMISSION_CODES.CUSTOMER_UPDATE) && (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            >
+              编辑
             </Button>
-          </Popconfirm>
+          )}
+          {hasPermissionCode(PERMISSION_CODES.CUSTOMER_DELETE) && (
+            <Popconfirm
+              title="确认删除"
+              description="删除后无法恢复，是否确认？"
+              onConfirm={() => handleDelete(record.id)}
+              okText="确认"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -392,12 +441,16 @@ const CustomerList: React.FC = () => {
             >
               重置
             </Button>
-            <Button icon={<ExportOutlined />} onClick={handleExport}>
-              导出
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-              新建客户
-            </Button>
+            {hasPermissionCode(PERMISSION_CODES.CUSTOMER_EXPORT) && (
+              <Button icon={<ExportOutlined />} onClick={handleExport}>
+                导出
+              </Button>
+            )}
+            {hasPermissionCode(PERMISSION_CODES.CUSTOMER_CREATE) && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+                新建客户
+              </Button>
+            )}
           </Space>
         </Space>
       </Card>

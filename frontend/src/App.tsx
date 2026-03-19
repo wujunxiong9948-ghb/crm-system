@@ -4,18 +4,57 @@ import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
+import './styles/mobile.css';
 
 import Layout from './components/Layout';
 import LoadingSpinner from './components/LoadingSpinner';
+import { PermissionGuard } from './components/PermissionGuard';
 
 // 懒加载页面组件
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Login = React.lazy(() => import('./pages/Login'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const CustomerList = React.lazy(() => import('./pages/customers/CustomerList'));
+const CustomerDetail = React.lazy(() => import('./pages/customers/CustomerDetail'));
+const OpportunityList = React.lazy(() => import('./pages/opportunities/OpportunityList'));
+const OpportunityDetail = React.lazy(() => import('./pages/opportunities/OpportunityDetail'));
+const OpportunityPipeline = React.lazy(() => import('./pages/opportunities/OpportunityPipeline'));
+
+// 产品管理页面
+const ProductList = React.lazy(() => import('./pages/products/ProductList'));
+const ProductDetail = React.lazy(() => import('./pages/products/ProductDetail'));
+const ProductForm = React.lazy(() => import('./pages/products/ProductForm'));
+
+// 订单管理页面
+const OrderList = React.lazy(() => import('./pages/orders/OrderList'));
+const OrderDetail = React.lazy(() => import('./pages/orders/OrderDetail'));
+const OrderForm = React.lazy(() => import('./pages/orders/OrderForm'));
+
+// 系统设置页面
+const Profile = React.lazy(() => import('./pages/settings/Profile'));
+const NotificationSettings = React.lazy(() => import('./pages/settings/NotificationSettings'));
+const UserList = React.lazy(() => import('./pages/settings/UserList'));
+const RoleList = React.lazy(() => import('./pages/settings/RoleList'));
+const CompanyInfo = React.lazy(() => import('./pages/settings/CompanyInfo'));
+const Dictionary = React.lazy(() => import('./pages/settings/Dictionary'));
+const OperationLog = React.lazy(() => import('./pages/settings/OperationLog'));
+
+// 联系记录页面
+const ContactHistory = React.lazy(() => import('./pages/contacts/ContactHistory'));
+const ContactCalendar = React.lazy(() => import('./pages/contacts/ContactCalendar'));
+
+// 报表分析页面
+const SalesReport = React.lazy(() => import('./pages/reports/SalesReport'));
+const CustomerAnalysis = React.lazy(() => import('./pages/reports/CustomerAnalysis'));
+const ProductAnalysis = React.lazy(() => import('./pages/reports/ProductAnalysis'));
+
+// 提醒中心页面
+const ReminderList = React.lazy(() => import('./pages/reminders/ReminderList'));
 
 // 设置dayjs本地化
 dayjs.locale('zh-cn');
+
+// 强制刷新缓存
 
 // 自定义主题配置
 const theme = {
@@ -78,53 +117,81 @@ const App: React.FC = () => {
             {/* 客户管理 */}
             <Route path="customers">
               <Route index element={<CustomerList />} />
-              <Route path=":id" element={<div>客户详情（开发中）</div>} />
+              <Route path=":id" element={<CustomerDetail />} />
               <Route path="new" element={<div>新建客户（开发中）</div>} />
             </Route>
 
             {/* 销售机会 */}
             <Route path="opportunities">
-              <Route index element={<div style={{ padding: 24 }}>销售机会页面（开发中）</div>} />
-              <Route path=":id" element={<div>机会详情（开发中）</div>} />
+              <Route index element={<OpportunityList />} />
+              <Route path="pipeline" element={<OpportunityPipeline />} />
+              <Route path=":id" element={<OpportunityDetail />} />
               <Route path="new" element={<div>新建机会（开发中）</div>} />
             </Route>
 
             {/* 订单管理 */}
             <Route path="orders">
-              <Route index element={<div style={{ padding: 24 }}>订单管理页面（开发中）</div>} />
-              <Route path=":id" element={<div>订单详情（开发中）</div>} />
-              <Route path="new" element={<div>新建订单（开发中）</div>} />
+              <Route index element={<OrderList />} />
+              <Route path=":id" element={<OrderDetail />} />
+              <Route path=":id/edit" element={<OrderForm />} />
+              <Route path="new" element={<OrderForm />} />
             </Route>
 
             {/* 产品目录 */}
             <Route path="products">
-              <Route index element={<div style={{ padding: 24 }}>产品目录页面（开发中）</div>} />
-              <Route path=":code" element={<div>产品详情（开发中）</div>} />
+              <Route index element={<ProductList />} />
+              <Route path=":id" element={<ProductDetail />} />
+              <Route path=":id/edit" element={<ProductForm />} />
+              <Route path="new" element={<ProductForm />} />
             </Route>
 
             {/* 联系记录 */}
             <Route path="contacts">
-              <Route index element={<div style={{ padding: 24 }}>联系记录页面（开发中）</div>} />
-              <Route path="calendar" element={<div>日历视图（开发中）</div>} />
+              <Route index element={<ContactHistory />} />
+              <Route path="calendar" element={<ContactCalendar />} />
             </Route>
 
             {/* 报表分析 */}
             <Route path="reports">
               <Route index element={<Navigate to="/reports/sales" replace />} />
-              <Route path="sales" element={<div style={{ padding: 24 }}>销售报表（开发中）</div>} />
-              <Route path="customers" element={<div>客户分析（开发中）</div>} />
-              <Route path="products" element={<div>产品分析（开发中）</div>} />
+              <Route path="sales" element={<SalesReport />} />
+              <Route path="customers" element={<CustomerAnalysis />} />
+              <Route path="products" element={<ProductAnalysis />} />
             </Route>
+
+            {/* 提醒中心 */}
+            <Route path="reminders" element={<ReminderList />} />
 
             {/* 系统设置 */}
             <Route path="settings">
               <Route index element={<Navigate to="/settings/profile" replace />} />
-              <Route
-                path="profile"
-                element={<div style={{ padding: 24 }}>个人设置（开发中）</div>}
-              />
-              <Route path="notifications" element={<div>通知设置（开发中）</div>} />
-              <Route path="system" element={<div>系统设置（开发中）</div>} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="notifications" element={<NotificationSettings />} />
+              <Route path="users" element={
+                <PermissionGuard requiredRole={['admin']}>
+                  <UserList />
+                </PermissionGuard>
+              } />
+              <Route path="roles" element={
+                <PermissionGuard requiredRole={['admin']}>
+                  <RoleList />
+                </PermissionGuard>
+              } />
+              <Route path="company" element={
+                <PermissionGuard requiredRole={['admin', 'manager']}>
+                  <CompanyInfo />
+                </PermissionGuard>
+              } />
+              <Route path="dictionary" element={
+                <PermissionGuard requiredRole={['admin', 'manager']}>
+                  <Dictionary />
+                </PermissionGuard>
+              } />
+              <Route path="logs" element={
+                <PermissionGuard requiredRole={['admin']}>
+                  <OperationLog />
+                </PermissionGuard>
+              } />
             </Route>
 
             {/* 404页面 */}

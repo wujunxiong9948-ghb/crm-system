@@ -7,7 +7,7 @@ CRM系统主应用
 import os
 import sys
 import logging
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
@@ -119,6 +119,13 @@ def create_app():
 
         return jsonify(docs)
 
+    # 上传文件静态文件服务
+    @app.route('/uploads/<path:filename>')
+    def serve_uploads(filename):
+        """服务上传的文件"""
+        uploads_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+        return send_from_directory(uploads_folder, filename)
+
     # 前端路由处理 - 所有非API路由都返回index.html
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
@@ -142,13 +149,17 @@ def create_app():
 
 def register_blueprints(app):
     """注册蓝图"""
-
-    # 导入蓝图
+    # 导入蓝图 - 使用重构后的单文件API
     from api.auth import auth_bp
     from api.customers import customers_bp
     from api.products import products_bp
     from api.orders import orders_bp
     from api.opportunities import opportunities_bp
+    from api.contacts import contacts_bp
+    from api.settings import settings_bp
+    from api.reports import reports_bp
+    from api.reminders import reminders_bp
+    from api.export import export_bp
 
     # 注册蓝图
     app.register_blueprint(auth_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/auth')
@@ -156,6 +167,11 @@ def register_blueprints(app):
     app.register_blueprint(products_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/products')
     app.register_blueprint(orders_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/orders')
     app.register_blueprint(opportunities_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/opportunities')
+    app.register_blueprint(contacts_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/contacts')
+    app.register_blueprint(settings_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/settings')
+    app.register_blueprint(reports_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/reports')
+    app.register_blueprint(reminders_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/reminders')
+    app.register_blueprint(export_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/export')
 
     # 临时示例端点
     @app.route(f'{settings.API_PREFIX}/{settings.API_VERSION}/test', methods=['GET'])

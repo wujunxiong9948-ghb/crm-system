@@ -42,9 +42,16 @@ def login():
         user.last_login = datetime.now()
         db.session.commit()
 
-        # 创建token
-        access_token = create_access_token(identity=user.username)
-        refresh_token = create_refresh_token(identity=user.username)
+        # 创建token - 使用用户ID作为identity（转换为字符串）
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
+
+        # 构建头像完整URL
+        avatar_url = user.avatar
+        if avatar_url and avatar_url.startswith('/'):
+            from flask import request as flask_request
+            base_url = flask_request.host_url.rstrip('/')
+            avatar_url = f"{base_url}{avatar_url}"
 
         return jsonify({
             'message': '登录成功',
@@ -55,7 +62,8 @@ def login():
                 'username': user.username,
                 'full_name': user.full_name,
                 'email': user.email,
-                'role': user.role
+                'role': user.role,
+                'avatar': avatar_url
             }
         }), 200
 
@@ -67,8 +75,8 @@ def login():
 def refresh():
     """刷新访问令牌"""
     try:
-        current_user = get_jwt_identity()
-        access_token = create_access_token(identity=current_user)
+        current_user_id = get_jwt_identity()
+        access_token = create_access_token(identity=current_user_id)
 
         return jsonify({
             'access_token': access_token
@@ -82,11 +90,24 @@ def refresh():
 def get_profile():
     """获取用户资料"""
     try:
-        username = get_jwt_identity()
-        user = User.query.filter_by(username=username).first()
+        user_id = get_jwt_identity()
+        # 转换为整数
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            return jsonify({'error': '无效的用户ID'}), 400
+            
+        user = User.query.get(user_id)
 
         if not user:
             return jsonify({'error': '用户不存在'}), 404
+
+        # 构建头像完整URL
+        avatar_url = user.avatar
+        if avatar_url and avatar_url.startswith('/'):
+            from flask import request as flask_request
+            base_url = flask_request.host_url.rstrip('/')
+            avatar_url = f"{base_url}{avatar_url}"
 
         return jsonify({
             'user': {
@@ -96,6 +117,7 @@ def get_profile():
                 'email': user.email,
                 'role': user.role,
                 'status': user.status,
+                'avatar': avatar_url,
                 'last_login': user.last_login.isoformat() if user.last_login else None
             }
         }), 200
@@ -108,8 +130,14 @@ def get_profile():
 def update_profile():
     """更新用户资料"""
     try:
-        username = get_jwt_identity()
-        user = User.query.filter_by(username=username).first()
+        user_id = get_jwt_identity()
+        # 转换为整数
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            return jsonify({'error': '无效的用户ID'}), 400
+        
+        user = User.query.get(user_id)
 
         if not user:
             return jsonify({'error': '用户不存在'}), 404
@@ -159,11 +187,24 @@ def logout():
 def check_auth():
     """检查认证状态"""
     try:
-        username = get_jwt_identity()
-        user = User.query.filter_by(username=username).first()
+        user_id = get_jwt_identity()
+        # 转换为整数
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            return jsonify({'error': '无效的用户ID'}), 400
+            
+        user = User.query.get(user_id)
 
         if not user:
             return jsonify({'error': '用户不存在'}), 404
+
+        # 构建头像完整URL
+        avatar_url = user.avatar
+        if avatar_url and avatar_url.startswith('/'):
+            from flask import request as flask_request
+            base_url = flask_request.host_url.rstrip('/')
+            avatar_url = f"{base_url}{avatar_url}"
 
         return jsonify({
             'authenticated': True,
@@ -172,7 +213,8 @@ def check_auth():
                 'username': user.username,
                 'full_name': user.full_name,
                 'email': user.email,
-                'role': user.role
+                'role': user.role,
+                'avatar': avatar_url
             }
         }), 200
 

@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ApiResponse } from '@/types';
 
-// API配置 - 生产环境直接访问后端
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+// API配置 - 开发环境使用代理，生产环境使用完整URL
+const isDevelopment = process.env.NODE_ENV === 'development';
+const API_BASE_URL = isDevelopment ? '/api/v1' : 'http://localhost:5000/api/v1';
 const API_TIMEOUT = 30000; // 30秒
 
 // 创建axios实例
@@ -127,10 +128,11 @@ class ApiService {
   async uploadFile<T = any>(
     url: string,
     file: File,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    fieldName: string = 'file'
   ): Promise<T> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append(fieldName, file);
 
     const response = await apiClient.post<ApiResponse<T>>(url, formData, {
       headers: {
@@ -282,20 +284,56 @@ export const apiEndpoints = {
 
   // 报表分析
   reports: {
+    dashboard: '/reports/dashboard',
     sales: '/reports/sales',
     customers: '/reports/customers',
+    products: '/reports/products',
     performance: '/reports/performance',
     export: '/reports/export',
   },
 
-  // 系统管理
-  system: {
-    health: '/system/health',
-    backup: '/system/backup',
-    restore: '/system/restore',
-    settings: '/system/settings',
-    users: '/system/users',
-    logs: '/system/logs',
+  // 系统设置
+  settings: {
+    // 用户管理
+    users: '/settings/users',
+    userDetail: (id: number) => `/settings/users/${id}`,
+    resetPassword: (id: number) => `/settings/users/${id}/reset-password`,
+    toggleUserStatus: (id: number) => `/settings/users/${id}/toggle-status`,
+
+    // 角色权限
+    roles: '/settings/roles',
+    allRoles: '/settings/roles/all',
+    roleDetail: (id: number) => `/settings/roles/${id}`,
+    permissions: '/settings/permissions',
+    permissionModules: '/settings/permissions/modules',
+
+    // 公司信息
+    company: '/settings/company',
+    companyLogo: '/settings/company/logo',
+
+    // 业务字典
+    dictionaries: '/settings/dictionaries',
+    dictionaryTypes: '/settings/dictionaries/types',
+    dictionariesByType: '/settings/dictionaries/by-type',
+    dictionaryDetail: (id: number) => `/settings/dictionaries/${id}`,
+    batchDictionaries: '/settings/dictionaries/batch',
+
+    // 操作日志
+    logs: '/settings/logs',
+    logDetail: (id: number) => `/settings/logs/${id}`,
+    logActions: '/settings/logs/actions',
+    logModules: '/settings/logs/modules',
+    clearLogs: '/settings/logs/clear',
+    exportLogs: '/settings/logs/export',
+
+    // 个人设置
+    profile: '/settings/profile',
+    changePassword: '/settings/profile/password',
+    uploadAvatar: '/settings/profile/avatar',
+
+    // 通知设置
+    notificationSettings: '/settings/notification-settings',
+    testNotification: '/settings/notification-settings/test',
   },
 
   // 仪表盘
@@ -304,6 +342,73 @@ export const apiEndpoints = {
     overview: '/dashboard/overview',
     alerts: '/dashboard/alerts',
   },
+};
+
+// 用户管理API
+export const userApi = {
+  getUsers: (params?: any) => apiService.get(apiEndpoints.settings.users, { params }),
+  getUser: (id: number) => apiService.get(apiEndpoints.settings.userDetail(id)),
+  createUser: (data: any) => apiService.post(apiEndpoints.settings.users, data),
+  updateUser: (id: number, data: any) => apiService.put(apiEndpoints.settings.userDetail(id), data),
+  deleteUser: (id: number) => apiService.delete(apiEndpoints.settings.userDetail(id)),
+  resetPassword: (id: number, data?: any) => apiService.post(apiEndpoints.settings.resetPassword(id), data || {}),
+  toggleUserStatus: (id: number) => apiService.post(apiEndpoints.settings.toggleUserStatus(id)),
+  getAllRoles: () => apiService.get(apiEndpoints.settings.allRoles),
+};
+
+// 角色权限API
+export const roleApi = {
+  getRoles: (params?: any) => apiService.get(apiEndpoints.settings.roles, { params }),
+  getRole: (id: number) => apiService.get(apiEndpoints.settings.roleDetail(id)),
+  createRole: (data: any) => apiService.post(apiEndpoints.settings.roles, data),
+  updateRole: (id: number, data: any) => apiService.put(apiEndpoints.settings.roleDetail(id), data),
+  deleteRole: (id: number) => apiService.delete(apiEndpoints.settings.roleDetail(id)),
+  getPermissions: () => apiService.get(apiEndpoints.settings.permissions),
+  getPermissionModules: () => apiService.get(apiEndpoints.settings.permissionModules),
+};
+
+// 公司信息API
+export const companyApi = {
+  getCompanyInfo: () => apiService.get(apiEndpoints.settings.company),
+  updateCompanyInfo: (data: any) => apiService.put(apiEndpoints.settings.company, data),
+};
+
+// 业务字典API
+export const dictionaryApi = {
+  getDictionaries: (params?: any) => apiService.get(apiEndpoints.settings.dictionaries, { params }),
+  getDictionaryTypes: () => apiService.get(apiEndpoints.settings.dictionaryTypes),
+  getDictionariesByType: () => apiService.get(apiEndpoints.settings.dictionariesByType),
+  createDictionary: (data: any) => apiService.post(apiEndpoints.settings.dictionaries, data),
+  updateDictionary: (id: number, data: any) => apiService.put(apiEndpoints.settings.dictionaryDetail(id), data),
+  deleteDictionary: (id: number) => apiService.delete(apiEndpoints.settings.dictionaryDetail(id)),
+  batchCreateDictionaries: (data: any) => apiService.post(apiEndpoints.settings.batchDictionaries, data),
+};
+
+// 操作日志API
+export const logApi = {
+  getLogs: (params?: any) => apiService.get(apiEndpoints.settings.logs, { params }),
+  getLog: (id: number) => apiService.get(apiEndpoints.settings.logDetail(id)),
+  getLogActions: () => apiService.get(apiEndpoints.settings.logActions),
+  getLogModules: () => apiService.get(apiEndpoints.settings.logModules),
+  clearLogs: (data: any) => apiService.post(apiEndpoints.settings.clearLogs, data),
+  exportLogs: (params?: any) => {
+    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+    window.open(`${API_BASE_URL}${apiEndpoints.settings.exportLogs}${queryString}`, '_blank');
+  },
+};
+
+// 个人设置API
+export const profileApi = {
+  getProfile: () => apiService.get(apiEndpoints.settings.profile),
+  updateProfile: (data: any) => apiService.put(apiEndpoints.settings.profile, data),
+  changePassword: (data: any) => apiService.put(apiEndpoints.settings.changePassword, data),
+};
+
+// 通知设置API
+export const notificationApi = {
+  getSettings: () => apiService.get(apiEndpoints.settings.notificationSettings),
+  updateSettings: (data: any) => apiService.put(apiEndpoints.settings.notificationSettings, data),
+  testNotification: (channel: string) => apiService.post(apiEndpoints.settings.testNotification, { channel }),
 };
 
 export default apiService;

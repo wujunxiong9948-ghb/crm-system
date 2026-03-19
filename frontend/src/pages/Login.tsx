@@ -52,7 +52,7 @@ const Login: React.FC = () => {
       <Card style={{ width: 400, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Title level={2} style={{ marginBottom: 8 }}>
-            酒店家具CRM系统
+            CRM系统
           </Title>
           <Typography.Text type="secondary">欢迎回来，请登录您的账户</Typography.Text>
         </div>
