@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Statistic, Table, Progress, Space, Typography, Spin, Alert } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import {
   UserOutlined,
   ShoppingCartOutlined,
@@ -27,6 +28,9 @@ import {
 } from 'recharts';
 import { apiService, apiEndpoints } from '@/services/api';
 import dayjs from 'dayjs';
+
+// Dashboard增强组件
+import { SalesRankingCard, TargetProgressCard, TodoPanel } from './Dashboard/components';
 
 const { Title, Text } = Typography;
 
@@ -64,7 +68,7 @@ interface DashboardData {
   }[];
 }
 
-const activityColumns = [
+const activityColumns: ColumnsType<any> = [
   {
     title: '类型',
     dataIndex: 'type',
@@ -295,6 +299,19 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
+      {/* Dashboard增强组件 */}
+      <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+        <Col xs={24} lg={8}>
+          <SalesRankingCard period="month" limit={5} />
+        </Col>
+        <Col xs={24} lg={8}>
+          <TargetProgressCard />
+        </Col>
+        <Col xs={24} lg={8}>
+          <TodoPanel />
+        </Col>
+      </Row>
+
       {/* 图表区域 */}
       <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
         <Col xs={24} lg={16}>
@@ -374,7 +391,7 @@ const Dashboard: React.FC = () => {
             }
           >
             <Table
-              dataSource={recentActivities}
+              dataSource={Array.isArray(recentActivities) ? recentActivities : []}
               columns={activityColumns}
               pagination={false}
               size="small"

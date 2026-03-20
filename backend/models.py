@@ -194,6 +194,7 @@ class Order(BaseModel):
     payment_status = Column(String(20), default='未支付')  # 未支付, 部分支付, 已支付
     shipping_address = Column(Text)
     notes = Column(Text)
+    assigned_to = Column(String(100))  # 负责人/销售员
 
     # 关系
     opportunity = relationship('Opportunity', back_populates='orders')
@@ -504,6 +505,47 @@ class Reminder(BaseModel):
 
     # 状态
     status = Column(String(20), default='pending')  # pending:待提醒, sent:已发送, dismissed:已忽略
+
+
+class SalesTarget(BaseModel):
+    """销售目标模型"""
+    __tablename__ = 'sales_targets'
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    # 目标类型
+    target_type = Column(String(20), nullable=False, default='monthly')  # monthly/quarterly/yearly
+
+    # 目标时间
+    target_year = Column(Integer, nullable=False)
+    target_month = Column(Integer)  # 月度目标时使用 (1-12)
+    target_quarter = Column(Integer)  # 季度目标时使用 (1-4)
+
+    # 目标金额
+    target_amount = Column(Float, nullable=False, default=0)
+
+    # 备注
+    notes = Column(Text)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'target_type', 'target_year', 'target_month', 'target_quarter', 
+                           name='uq_sales_target_period'),
+    )
+
+    def to_dict(self):
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'target_type': self.target_type,
+            'target_year': self.target_year,
+            'target_month': self.target_month,
+            'target_quarter': self.target_quarter,
+            'target_amount': self.target_amount,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 # 创建所有表
 def create_tables():

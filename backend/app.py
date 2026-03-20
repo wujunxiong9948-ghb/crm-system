@@ -69,6 +69,36 @@ def create_app():
     db.init_app(app)
     jwt = JWTManager(app)
     bcrypt = Bcrypt(app)
+    
+    # 自定义JWT错误处理
+    from utils.api_response import api_response
+    
+    @jwt.unauthorized_loader
+    def unauthorized_callback(callback):
+        """缺少Token"""
+        return api_response(
+            code=401001,
+            message="未授权，请先登录",
+            data=None
+        )
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(callback):
+        """无效的Token"""
+        return api_response(
+            code=401001,
+            message="无效的认证令牌",
+            data=None
+        )
+    
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        """Token过期"""
+        return api_response(
+            code=401002,
+            message="登录已过期，请重新登录",
+            data=None
+        )
 
     # 注册蓝图
     register_blueprints(app)
@@ -160,6 +190,7 @@ def register_blueprints(app):
     from api.reports import reports_bp
     from api.reminders import reminders_bp
     from api.export import export_bp
+    from api.dashboard import dashboard_bp
 
     # 注册蓝图
     app.register_blueprint(auth_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/auth')
@@ -172,6 +203,7 @@ def register_blueprints(app):
     app.register_blueprint(reports_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/reports')
     app.register_blueprint(reminders_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/reminders')
     app.register_blueprint(export_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/export')
+    app.register_blueprint(dashboard_bp, url_prefix=f'{settings.API_PREFIX}/{settings.API_VERSION}/dashboard')
 
     # 临时示例端点
     @app.route(f'{settings.API_PREFIX}/{settings.API_VERSION}/test', methods=['GET'])

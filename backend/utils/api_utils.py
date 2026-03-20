@@ -1,38 +1,60 @@
 """
 API工具函数 - 统一接口响应和数据处理
+基于API响应格式规范 v1.0
 """
-from flask import jsonify
+from flask import jsonify, request
 from datetime import datetime, date
 from typing import Any, Dict, List, Optional, Union
+import uuid
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+def generate_request_id():
+    """生成请求ID"""
+    try:
+        return request.headers.get('X-Request-ID', str(uuid.uuid4())[:12])
+    except RuntimeError:
+        return str(uuid.uuid4())[:12]
+
+
 class APIResponse:
-    """统一API响应格式"""
+    """统一API响应格式 - v1.0规范"""
     
     @staticmethod
-    def success(data: Any = None, message: str = '操作成功', code: int = 200) -> tuple:
-        """成功响应"""
-        return jsonify({
+    def success(data: Any = None, message: str = 'success', code: int = 200) -> tuple:
+        """成功响应 - 标准格式 {success, code, message, data, timestamp, request_id}"""
+        response_body = {
             'success': True,
             'code': code,
             'message': message,
             'data': data,
-            'timestamp': datetime.now().isoformat()
-        }), code
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'request_id': generate_request_id()
+        }
+        return jsonify(response_body), code
     
     @staticmethod
-    def error(message: str = '操作失败', code: int = 400, data: Any = None) -> tuple:
-        """错误响应"""
-        return jsonify({
+    def error(message: str = '操作失败', code: int = 400001, data: Any = None) -> tuple:
+        """错误响应 - 标准格式"""
+        # 判断HTTP状态码
+        if code >= 500000:
+            http_status = 500
+        elif code >= 400000:
+            http_status = code // 1000 if code // 1000 in [400, 401, 403, 404, 409, 422] else 400
+        else:
+            http_status = 400
+        
+        response_body = {
             'success': False,
             'code': code,
             'message': message,
             'data': data,
-            'timestamp': datetime.now().isoformat()
-        }), code
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'request_id': generate_request_id()
+        }
+        return jsonify(response_body), http_status
     
     @staticmethod
     def paginated(
@@ -40,9 +62,9 @@ class APIResponse:
         total: int, 
         page: int, 
         per_page: int,
-        message: str = '获取成功'
+        message: str = 'success'
     ) -> tuple:
-        """分页响应"""
+        """分页响应 - 标准格式"""
         return jsonify({
             'success': True,
             'code': 200,
@@ -53,11 +75,72 @@ class APIResponse:
                     'total': total,
                     'page': page,
                     'per_page': per_page,
-                    'pages': (total + per_page - 1) // per_page
+                    'total_pages': (total + per_page - 1) // per_page,
+                    'has_next': page * per_page < total,
+                    'has_prev': page > 1
                 }
             },
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'request_id': generate_request_id()
         }), 200
+
+
+# 便捷错误响应函数
+def error_param_missing(field: str):
+    """参数缺失错误 - 400001"""
+    return APIResponse.error(
+        code=400001,
+        message=f'参数错误：{field}不能为空',
+        data={'field': field, 'error_type': 'missing_required'}
+    )
+
+
+def error_unauthorized():
+    """未授权错误 - 401001"""
+    return APIResponse.error(
+        code=401001,
+        message='未授权，请先登录',
+        data=None
+    )
+
+
+def error_forbidden(resource: str = '该资源'):
+    """禁止访问错误 - 403001"""
+    return APIResponse.error(
+        code=403001,
+        message=f'无权访问{resource}',
+        data=None
+    )
+
+
+def error_not_found(resource: str = '资源'):
+    """资源不存在错误 - 404001"""
+    return APIResponse.error(
+        code=404001,
+        message=f'{resource}不存在',
+        data=None
+    )
+
+
+def error_duplicate(resource: str = '资源', field: str = ''):
+    """资源冲突/重复错误 - 409001"""
+    msg = f'{resource}已存在'
+    if field:
+        msg += f'：{field}'
+    return APIResponse.error(
+        code=409001,
+        message=msg,
+        data=None
+    )
+
+
+def error_internal(message: str = '服务器内部错误，请稍后重试'):
+    """服务器内部错误 - 500001"""
+    return APIResponse.error(
+        code=500001,
+        message=message,
+        data=None
+    )
 
 
 class DateTimeUtils:

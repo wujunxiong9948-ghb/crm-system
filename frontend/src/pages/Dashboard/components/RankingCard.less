@@ -1,0 +1,54 @@
+.ranking-card {
+  .ranking-list {
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .rank-icon {
+        width: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .user-avatar {
+        margin: 0 12px;
+      }
+      
+      .user-info {
+        flex: 1;
+        
+        .user-name {
+          font-weight: 500;
+          font-size: 14px;
+        }
+        
+        .user-dept {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+      }
+      
+      .sales-info {
+        text-align: right;
+        
+        .sales-amount {
+          font-weight: 600;
+          font-size: 16px;
+          color: #1890ff;
+        }
+        
+        .sales-count {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+      }
+    }
+  }
+}

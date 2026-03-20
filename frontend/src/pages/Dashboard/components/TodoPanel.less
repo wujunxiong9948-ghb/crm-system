@@ -1,0 +1,45 @@
+.todo-panel {
+  .ant-card-body {
+    padding: 0;
+  }
+  
+  .ant-tabs-nav {
+    margin-bottom: 0;
+    padding: 0 16px;
+  }
+  
+  .todo-item {
+    padding: 12px 16px;
+    
+    .todo-content {
+      width: 100%;
+      
+      .todo-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+        
+        .todo-title {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+      
+      .todo-meta {
+        display: flex;
+        gap: 12px;
+        
+        .customer-name {
+          color: #8c8c8c;
+        }
+        
+        .due-time {
+          color: #faad14;
+        }
+      }
+    }
+  }
+}
